@@ -283,6 +283,7 @@ def main():
     
     outdir = config["output_dir"]
     splitType = config["split"]
+    balanced = False
 
     # Sanity check to make sure that we are not overwriting an existing output configuration 
     if not os.path.exists(outdir):
@@ -300,7 +301,7 @@ def main():
     
     # Read in the labels file, and generate the train, valid, test datasets
     df = pd.read_csv(config["labels_file"], sep=",", header='infer')
-    sunspotTrainSet, sunspotValidSet, sunspotTestSet = generateTrainValidData(df, root_dir='/', splitType=splitType)
+    sunspotTrainSet, sunspotValidSet, sunspotTestSet = generateTrainValidData(df, root_dir='/', splitType=splitType, balanced=balanced)
 
     # Initialize the model. And map it to the device.
     if config["lstm"] == "yes":

@@ -136,7 +136,7 @@ class sunspotImageDataSet(torch.utils.data.Dataset):
 
         return [filename, image, labels]
 
-def generateTrainValidData(df, root_dir, splitType = 'by_harpnum'):
+def generateTrainValidData(df, root_dir, splitType = 'by_harpnum', balanced = False):
     
     with open('config.json', 'r') as jsonfile:
         config = json.load(jsonfile)
@@ -150,6 +150,23 @@ def generateTrainValidData(df, root_dir, splitType = 'by_harpnum'):
     df['flare'] = df['M_flare_in_' + window] + df['X_flare_in_' + window]
     rows = df.loc[:,'flare'] >= 1
     df.loc[rows, 'flare'] = 1
+    
+    print(df.flare.value_counts())
+    
+    if balanced == True:
+        num_pos = df.label.value_counts()[1]
+        num_neg = df.label.value_counts()[0]
+        num_to_drop = num_neg - num_pos
+        # get indices of negative samples
+        neg_samples_indices = df.index[df['label']==0].tolist()
+        # randomly select indices
+        random.seed(8)
+        selected = random.sample(neg_samples_indices, k = num_to_drop)
+        # drop num_to_drop randomly selected indices from the dataframe
+        df = df.drop(index=selected)
+    # else, don't set anything
+    
+    print(df.flare.value_counts())
     
     # This type of splitting is almost never used. It is incorrect, but sometimes good for debugging.
     if splitType == 'random':
