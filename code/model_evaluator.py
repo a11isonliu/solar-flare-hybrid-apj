@@ -27,7 +27,7 @@ from cnn_models import Vgg16, Vgg16Conv3D
 # The output directory of the CNN Only results is the command line argument.
 # The saved model state and the config file will be loaded from here.
 outdir = sys.argv[1]
-
+print("outdir: ", outdir + '/config.json')
 with open(outdir + '/config.json', 'r') as jsonfile:
     config = json.load(jsonfile)
 
@@ -39,14 +39,14 @@ outdir = config["output_dir"]
 splitType = config["split"]
 
 if not os.path.exists(outdir):
-    print("Output directory doesn not exist.")
+    print("Output directory does not exist.")
     exit(-1)
 
 device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 df = pd.read_csv(config["labels_file"], sep=",", header='infer')
 
 # Load the data
-sunspotTrainSet, sunspotValidSet, sunspotTestSet = data.generateTrainValidData(df, root_dir='/', splitType=splitType)
+sunspotTrainSet, sunspotValidSet, sunspotTestSet = data.generateTrainValidData(df, root_dir='../../../../srv/data/hdf5', splitType=splitType)
 
 # Generate the data loaders
 batch_size=128
@@ -55,8 +55,8 @@ val_loader = data.get_loader(sunspotValidSet, sampler=None, batch_size=batch_siz
 test_loader = data.get_loader(sunspotTestSet, sampler=None, batch_size=batch_size)
 
 # Instantiate and initialize the model
-#vgg16 = Vgg16(config["input_channels"])
-vgg16 = Vgg16Conv3D(config["input_channels"])
+vgg16 = Vgg16(config["input_channels"])
+# vgg16 = Vgg16Conv3D(config["input_channels"])
 vgg16.load_state_dict(torch.load(outdir + '/model'))
 net = vgg16
 net.to(device)

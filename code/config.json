@@ -4,10 +4,11 @@
  "input_channels": 1,
  "weight_decay": 1e-3,
  "learning_rate": 1e-4,
- "alpha_inv": 11,
+ "alpha_inv": 101,
  "gamma": 0,
  "output_dir": "../results/seed_100/",
  "split": "by_harpnum",
+ "balanced": false, 
  "seed": 100,
  "lstm": "no",
  "seq_length": 4 

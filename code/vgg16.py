@@ -283,8 +283,8 @@ def main():
     
     outdir = config["output_dir"]
     splitType = config["split"]
-    balanced = False
-
+    balanced = config["balanced"]
+    
     # Sanity check to make sure that we are not overwriting an existing output configuration 
     if not os.path.exists(outdir):
         os.mkdir(outdir)
@@ -297,12 +297,12 @@ def main():
         json.dump(config, outfile)
     
     # Decide which device to run on
-    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
     # Read in the labels file, and generate the train, valid, test datasets
     df = pd.read_csv(config["labels_file"], sep=",", header='infer')
-    sunspotTrainSet, sunspotValidSet, sunspotTestSet = generateTrainValidData(df, root_dir='/', splitType=splitType, balanced=balanced)
-
+    sunspotTrainSet, sunspotValidSet, sunspotTestSet = generateTrainValidData(df, root_dir='../../../../srv/data/hdf5', splitType=splitType, balanced=balanced)
+    
     # Initialize the model. And map it to the device.
     if config["lstm"] == "yes":
         net = Vgg16LSTM()

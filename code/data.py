@@ -151,23 +151,6 @@ def generateTrainValidData(df, root_dir, splitType = 'by_harpnum', balanced = Fa
     rows = df.loc[:,'flare'] >= 1
     df.loc[rows, 'flare'] = 1
     
-    print(df.flare.value_counts())
-    
-    if balanced == True:
-        num_pos = df.label.value_counts()[1]
-        num_neg = df.label.value_counts()[0]
-        num_to_drop = num_neg - num_pos
-        # get indices of negative samples
-        neg_samples_indices = df.index[df['label']==0].tolist()
-        # randomly select indices
-        random.seed(8)
-        selected = random.sample(neg_samples_indices, k = num_to_drop)
-        # drop num_to_drop randomly selected indices from the dataframe
-        df = df.drop(index=selected)
-    # else, don't set anything
-    
-    print(df.flare.value_counts())
-    
     # This type of splitting is almost never used. It is incorrect, but sometimes good for debugging.
     if splitType == 'random':
         df_train = df.sample(frac=0.7, random_state=1)
@@ -207,6 +190,40 @@ def generateTrainValidData(df, root_dir, splitType = 'by_harpnum', balanced = Fa
         df_valid = df[df.apply(lambda x: int(re.search(pattern, x['filename']).group(1)) in valid_harpnums, axis=1)]
         df_test = df[df.apply(lambda x: int(re.search(pattern, x['filename']).group(1)) in test_harpnums, axis=1)]
     
+        # balance only df_train if balanced == True
+        if balanced == True:
+            balanceType = 'oversample'
+
+            num_pos = df_train.flare.value_counts()[1]
+            num_neg = df_train.flare.value_counts()[0]
+            random.seed(seed)
+            
+            # Balance by UNDERSAMPLING
+            if balanceType == 'undersample':
+                num_to_drop = num_neg - num_pos # num_neg > num_pos
+                # get indices of negative samples
+                neg_samples_indices = df_train.index[df_train['flare']==0].tolist()
+                # randomly select indices
+                selected = random.sample(neg_samples_indices, k = num_to_drop)
+                # drop num_to_drop randomly selected rows from the dataframe
+                df_train = df_train.drop(index=selected)
+            # Balance by OVERSAMPLING
+            elif balanceType == 'oversample':
+                num_to_resample = num_neg - num_pos # num_neg > num_pos
+                # get indices of positive samples
+                pos_samples_indices = df_train.index[df_train['flare']==1].tolist()
+                # randomly select indices
+                selected = random.choices(pos_samples_indices, k = num_to_resample)
+                # duplicate num_to_resample randomly selected rows from the dataframe
+                df_train = pd.concat([df_train, df_train.loc[selected]])
+
+
+        print("balanced: ", str(balanced) + ' - ' +  balanceType)
+        print("train set flare counts: ")
+        print(df_train.flare.value_counts())
+        print("test set flare counts: ")
+        print(df_test.flare.value_counts())
+
     # If it should be an LSTM. 
     if config["lstm"] == 'yes':
         
